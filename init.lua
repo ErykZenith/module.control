@@ -1,5 +1,4 @@
 module_controls = {}
-module_controls.__index = module_controls
 
 local function generateCommands(length)
     local chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -19,7 +18,7 @@ local function generateCommands(length)
     return command
 end
 
-function module_controls:RegisterControl(
+function module_controls.RegisterControl(
     btnType, 
     btn, 
     onPress, 
