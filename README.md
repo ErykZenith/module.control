@@ -1,5 +1,6 @@
-https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/
-example
+# example
+- **https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/**
+```
 local controls = module_controls:RegisterControl(
     "keyboard", "E", 
     function(instance) print("Pressed E") end,
