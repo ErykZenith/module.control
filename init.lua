@@ -1,36 +1,53 @@
-module_controls = {}
+ModuleControl = {}
 
-local function generateCommands(length)
+local function generateUniqueCommand(length)
     local chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    local command = ""
-
-    for i = 1, length do
-        local randomIndex = math.random(1, #chars)
-        command = command .. chars:sub(randomIndex, randomIndex)
+    local existingCommands = GetRegisteredCommands()
+    
+    local function generateRandomCommand()
+        local command = ""
+        for i = 1, length do
+            local randomIndex = math.random(1, #chars)
+            command = command .. chars:sub(randomIndex, randomIndex)
+        end
+        return command
     end
 
-    for _, registeredCommand in ipairs(GetRegisteredCommands()) do
-        if command == registeredCommand then
-            return generateCommands(length)
-        end
+    local command = generateRandomCommand()
+    
+    while table.contains(existingCommands, command) do
+        command = generateRandomCommand()
     end
 
     return command
 end
 
-function module_controls.RegisterControl(
-    btnType, 
-    btn, 
-    onPress, 
-    onRelease, 
-    onListener, 
-    description
-)
-    local eventName = "module.controls/" .. generateCommands(math.random(8, 16))
-    print(string.format("[^2INFO^7] Registering control: %s > [ %s ] = %s", eventName, btnType, btn))
+function ModuleControl.RegisterControl(params)
+    assert(type(params) == "table", "Parameters must be passed as a table")
+    local btnType = params.type or error("Control type is required")
+    local btn = params.button or error("Button is required")
+    local onPress = params.onPress
+    local onRelease = params.onRelease
+    local onListener = params.onListener
+    
+    local eventName = "module.controls/" .. generateUniqueCommand(math.random(8, 16))
+    
+    local instance = {
+        controlState = true,
+        enable = function(self)
+            self.controlState = true
+        end,
+        disable = function(self)
+            self.controlState = false
+        end,
+        toggle = function(self)
+            self.controlState = not self.controlState
+        end
+    }
 
-    description = description or string.format("(module.controls) [%s]", btn)
-    local instance = { controlState = true }
+    local description = params.description or string.format("(module.controls) [%s]", btn)
+    
+    print(string.format("[^2INFO^7] Registering control: %s > [ %s ] = %s", eventName, btnType, btn))
 
     RegisterKeyMapping("+" .. eventName, description, btnType, btn)
 
@@ -39,6 +56,7 @@ function module_controls.RegisterControl(
             if onListener then onListener("block", instance) end
             return
         end
+
         if onListener then onListener("onPress", instance) end
         if onPress then onPress(instance) end
     end)
@@ -49,6 +67,7 @@ function module_controls.RegisterControl(
                 if onListener then onListener("block", instance) end
                 return
             end
+
             if onListener then onListener("onRelease", instance) end
             onRelease(instance)
         end)
@@ -62,12 +81,11 @@ function module_controls.RegisterControl(
     return instance
 end
 
--- https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/
--- example
--- local controls = module_controls:RegisterControl(
---     "keyboard", "E", 
---     function(instance) print("Pressed E") end,
---     function(instance) print("Released E") end,
---     function(event, instance) print("Listener Event:", event) end,
---     "Open Menu"
--- )
+function table.contains(table, element)
+    for _, value in pairs(table) do
+        if value == element then
+            return true
+        end
+    end
+    return false
+end
